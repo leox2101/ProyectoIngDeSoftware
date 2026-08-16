@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Rol {
+  CANDIDATO
+  EMPRESA
+}
+
+enum TipoRequisito {
+  OBLIGATORIO
+  DESEABLE
+}
+
+model Usuario {
+  id             Int       @id @default(autoincrement())
+  correo         String    @unique
+  contrasenaHash String
+  nombre         String
+  rol            Rol
+  fechaCreacion  DateTime  @default(now())
+  fechaActualizacion DateTime @updatedAt
+
+  candidato      Candidato?
+  empresa        Empresa?
+}
+
+model Candidato {
+  id              Int                 @id @default(autoincrement())
+  usuarioId       Int                 @unique
+  usuario         Usuario             @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  cv              CV?
+  habilidades     HabilidadCandidato[]
+  experiencias    Experiencia[]
+  educacion       Educacion[]
+  coincidencias   Coincidencia[]
+  fechaCreacion   DateTime            @default(now())
+  fechaActualizacion DateTime         @updatedAt
+}
+
+model Empresa {
+  id              Int        @id @default(autoincrement())
+  usuarioId       Int        @unique
+  usuario         Usuario    @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  vacantes        Vacante[]
+  fechaCreacion   DateTime   @default(now())
+  fechaActualizacion DateTime @updatedAt
+}
+
+model CV {
+  id              Int        @id @default(autoincrement())
+  candidatoId     Int        @unique
+  candidato       Candidato  @relation(fields: [candidatoId], references: [id], onDelete: Cascade)
+  nombreArchivo   String
+  rutaArchivo     String?
+  textoExtraido   String?
+  fechaCreacion   DateTime   @default(now())
+  fechaActualizacion DateTime @updatedAt
+}
+
+model HabilidadCandidato {
+  id              Int        @id @default(autoincrement())
+  candidatoId     Int
+  candidato       Candidato  @relation(fields: [candidatoId], references: [id], onDelete: Cascade)
+  nombre          String
+  nivel           String?
+  fuente          String?
+}
+
+model Experiencia {
+  id              Int        @id @default(autoincrement())
+  candidatoId     Int
+  candidato       Candidato  @relation(fields: [candidatoId], references: [id], onDelete: Cascade)
+  cargo           String
+  empresa         String?
+  descripcion     String?
+  fechaInicio     DateTime?
+  fechaFin        DateTime?
+}
+
+model Educacion {
+  id              Int        @id @default(autoincrement())
+  candidatoId     Int
+  candidato       Candidato  @relation(fields: [candidatoId], references: [id], onDelete: Cascade)
+  institucion     String
+  titulo          String?
+  campoEstudio    String?
+  fechaInicio     DateTime?
+  fechaFin        DateTime?
+}
+
+model Vacante {
+  id              Int           @id @default(autoincrement())
+  empresaId       Int
+  empresa         Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  titulo          String
+  descripcion     String
+  ubicacion       String?
+  requisitos      Requisito[]
+  coincidencias   Coincidencia[]
+  activa          Boolean       @default(true)
+  fechaCreacion   DateTime      @default(now())
+  fechaActualizacion DateTime   @updatedAt
+}
+
+model Requisito {
+  id              Int            @id @default(autoincrement())
+  vacanteId       Int
+  vacante         Vacante        @relation(fields: [vacanteId], references: [id], onDelete: Cascade)
+  nombre          String
+  tipo            TipoRequisito
+  descripcion     String?
+}
+
+model Coincidencia {
+  id              Int        @id @default(autoincrement())
+  candidatoId     Int
+  vacanteId       Int
+  candidato       Candidato  @relation(fields: [candidatoId], references: [id], onDelete: Cascade)
+  vacante         Vacante    @relation(fields: [vacanteId], references: [id], onDelete: Cascade)
+  porcentaje      Float
+  fechaCreacion   DateTime   @default(now())
+
+  @@unique([candidatoId, vacanteId])
+}
