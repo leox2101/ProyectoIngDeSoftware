@@ -50,6 +50,18 @@ export async function POST(request: NextRequest) {
         correo,
         contrasenaHash,
         rol,
+        candidato:
+          rol === "CANDIDATO"
+            ? {
+                create: {},
+              }
+            : undefined,
+        empresa:
+          rol === "EMPRESA"
+            ? {
+                create: {},
+              }
+            : undefined,
       },
     });
 
