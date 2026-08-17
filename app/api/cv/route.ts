@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import PDFParser from "pdf2json";
 import { prisma } from "../../lib/prisma";
 import { verificarSesion } from "../../lib/auth";
-import { extraerHabilidades } from "../../lib/parserCV";
+import {
+  extraerHabilidades,
+  extraerEducacion,
+  extraerExperiencia,
+} from "../../lib/parserCV";
 
 export const runtime = "nodejs";
 
@@ -90,6 +94,8 @@ export async function POST(request: NextRequest) {
     });
 
     const habilidadesExtraidas = extraerHabilidades(textoExtraido);
+    const educacionExtraida = extraerEducacion(textoExtraido);
+    const experienciaExtraida = extraerExperiencia(textoExtraido);
 
     let candidato = await prisma.candidato.findUnique({
       where: {
@@ -147,11 +153,51 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    await prisma.educacion.deleteMany({
+      where: {
+        candidatoId: candidato.id,
+      },
+    });
+
+    if (educacionExtraida.length > 0) {
+      await prisma.educacion.createMany({
+        data: educacionExtraida.map((educacion) => ({
+          candidatoId: candidato.id,
+          institucion: educacion.institucion,
+          titulo: educacion.titulo,
+          campoEstudio: educacion.campoEstudio,
+          fechaInicio: educacion.fechaInicio,
+          fechaFin: educacion.fechaFin,
+        })),
+      });
+    }
+
+    await prisma.experiencia.deleteMany({
+      where: {
+        candidatoId: candidato.id,
+      },
+    });
+
+    if (experienciaExtraida.length > 0) {
+      await prisma.experiencia.createMany({
+        data: experienciaExtraida.map((experiencia) => ({
+          candidatoId: candidato.id,
+          cargo: experiencia.cargo,
+          empresa: experiencia.empresa,
+          descripcion: experiencia.descripcion,
+          fechaInicio: experiencia.fechaInicio,
+          fechaFin: experiencia.fechaFin,
+        })),
+      });
+    }
+
     return NextResponse.json({
       mensaje: "CV procesado correctamente",
       nombreArchivo: archivo.name,
       caracteresExtraidos: textoExtraido.length,
       habilidadesExtraidas,
+      educacionExtraida,
+      experienciaExtraida,
       textoExtraido,
     });
   } catch (error) {
