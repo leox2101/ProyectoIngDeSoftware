@@ -95,17 +95,20 @@ model Educacion {
 }
 
 model Vacante {
-  id              Int           @id @default(autoincrement())
-  empresaId       Int
-  empresa         Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
-  titulo          String
-  descripcion     String
-  ubicacion       String?
-  requisitos      Requisito[]
-  coincidencias   Coincidencia[]
-  activa          Boolean       @default(true)
-  fechaCreacion   DateTime      @default(now())
-  fechaActualizacion DateTime   @updatedAt
+  id                 Int           @id @default(autoincrement())
+  empresaId          Int
+  empresa            Empresa       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  titulo             String
+  descripcion        String
+  ubicacion          String?
+  correoContacto     String?
+  telefonoContacto   String?
+  enlacePostulacion  String?
+  requisitos         Requisito[]
+  coincidencias      Coincidencia[]
+  activa             Boolean       @default(true)
+  fechaCreacion      DateTime      @default(now())
+  fechaActualizacion DateTime      @updatedAt
 }
 
 model Requisito {
