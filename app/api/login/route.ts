@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "../../lib/prisma";
+import { crearSesion } from "../../lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,7 +41,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({
+    const token = await crearSesion(usuario.id, usuario.rol);
+
+    const respuesta = NextResponse.json({
       mensaje: "Inicio de sesión exitoso",
       usuario: {
         id: usuario.id,
@@ -49,6 +52,16 @@ export async function POST(request: NextRequest) {
         rol: usuario.rol,
       },
     });
+
+    respuesta.cookies.set("sesion", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7,
+      path: "/",
+    });
+
+    return respuesta;
   } catch (error) {
     console.error("Error al iniciar sesión:", error);
 
