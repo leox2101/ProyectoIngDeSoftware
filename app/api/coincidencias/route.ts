@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../lib/prisma";
 import { verificarSesion } from "../../lib/auth";
@@ -83,10 +82,7 @@ export async function GET(request: NextRequest) {
         const requisitoNormalizado = normalizarTexto(requisito.nombre);
 
         const coincide = habilidadesCandidato.some(
-          (habilidad) =>
-            habilidad === requisitoNormalizado ||
-            habilidad.includes(requisitoNormalizado) ||
-            requisitoNormalizado.includes(habilidad)
+          (habilidad) => habilidad === requisitoNormalizado
         );
 
         if (coincide) {
@@ -98,10 +94,7 @@ export async function GET(request: NextRequest) {
         const requisitoNormalizado = normalizarTexto(requisito.nombre);
 
         const coincide = habilidadesCandidato.some(
-          (habilidad) =>
-            habilidad === requisitoNormalizado ||
-            habilidad.includes(requisitoNormalizado) ||
-            requisitoNormalizado.includes(habilidad)
+          (habilidad) => habilidad === requisitoNormalizado
         );
 
         if (coincide) {
@@ -123,6 +116,16 @@ export async function GET(request: NextRequest) {
         porcentajeObligatorios * 0.6 + porcentajeDeseables * 0.4;
 
       const porcentajeFinal = Number(porcentaje.toFixed(2));
+
+      const cumpleObligatorios =
+        obligatorios.length === 0 ||
+        obligatoriosCumplidos === obligatorios.length;
+
+      const cumpleDeseables =
+        deseables.length === 0 || deseablesCumplidos >= 1;
+
+      const cumpleRequisitos =
+        cumpleObligatorios && cumpleDeseables;
 
       await prisma.coincidencia.upsert({
         where: {
@@ -151,6 +154,9 @@ export async function GET(request: NextRequest) {
         enlacePostulacion: vacante.enlacePostulacion,
         empresa: vacante.empresa.usuario.nombre,
         porcentaje: porcentajeFinal,
+        cumpleRequisitos,
+        cumpleObligatorios,
+        cumpleDeseables,
         obligatoriosCumplidos,
         obligatoriosTotales: obligatorios.length,
         deseablesCumplidos,
@@ -173,4 +179,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

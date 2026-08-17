@@ -1,4 +1,3 @@
-
 "use client";
 
 import { ChangeEvent, useEffect, useState } from "react";
@@ -13,6 +12,9 @@ type Resultado = {
   enlacePostulacion: string | null;
   empresa: string;
   porcentaje: number;
+  cumpleRequisitos: boolean;
+  cumpleObligatorios: boolean;
+  cumpleDeseables: boolean;
   obligatoriosCumplidos: number;
   obligatoriosTotales: number;
   deseablesCumplidos: number;
@@ -30,16 +32,24 @@ export default function CandidatoPage() {
   function seleccionarArchivo(evento: ChangeEvent<HTMLInputElement>) {
     const archivoSeleccionado = evento.target.files?.[0];
 
-    if (archivoSeleccionado) {
-      setArchivo(archivoSeleccionado);
-      setMensaje("");
-      setTextoExtraido("");
+    if (!archivoSeleccionado) {
+      return;
     }
+
+    if (archivoSeleccionado.type !== "application/pdf") {
+      alert("El archivo seleccionado debe ser un PDF.");
+      evento.target.value = "";
+      return;
+    }
+
+    setArchivo(archivoSeleccionado);
+    setMensaje("");
+    setTextoExtraido("");
   }
 
   async function subirCV() {
     if (!archivo) {
-      setMensaje("Selecciona un archivo PDF");
+      alert("Debes seleccionar un archivo PDF antes de subirlo.");
       return;
     }
 
@@ -59,16 +69,28 @@ export default function CandidatoPage() {
       const datos = await respuesta.json();
 
       if (!respuesta.ok) {
-        setMensaje(datos.error || "No se pudo procesar el CV");
+        const error = datos.error || "No se pudo procesar el CV.";
+
+        setMensaje(error);
+        alert(`Error al procesar el CV:\n\n${error}`);
         return;
       }
 
       setMensaje("CV procesado correctamente");
-      setTextoExtraido(datos.textoExtraido);
+      setTextoExtraido(datos.textoExtraido || "");
 
-      await cargarCoincidencias();
+      try {
+        await cargarCoincidencias();
+      } catch {
+        alert(
+          "El CV fue procesado correctamente, pero ocurrió un error al calcular las coincidencias con las vacantes."
+        );
+      }
     } catch {
-      setMensaje("No se pudo conectar con el servidor");
+      const error = "No se pudo conectar con el servidor.";
+
+      setMensaje(error);
+      alert(`Error:\n\n${error}`);
     } finally {
       setCargando(false);
     }
@@ -82,21 +104,55 @@ export default function CandidatoPage() {
       const datos = await respuesta.json();
 
       if (!respuesta.ok) {
-        setMensaje(datos.error || "No se pudieron cargar las vacantes");
-        return;
+        const error =
+          datos.error || "No se pudieron calcular las coincidencias.";
+
+        setMensaje(error);
+        setResultados([]);
+
+        alert(`Error en la comparación:\n\n${error}`);
+
+        throw new Error(error);
       }
 
-      setResultados(datos.resultados || []);
-    } catch {
-      setMensaje("No se pudieron cargar las vacantes");
+      if (!Array.isArray(datos.resultados)) {
+        const error =
+          "El servidor no devolvió resultados válidos para la comparación.";
+
+        setMensaje(error);
+        setResultados([]);
+
+        alert(`Error en la comparación:\n\n${error}`);
+
+        throw new Error(error);
+      }
+
+      setResultados(datos.resultados);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+
+      const mensajeError = "Ocurrió un error al calcular las coincidencias.";
+
+      setMensaje(mensajeError);
+      setResultados([]);
+
+      alert(`Error en la comparación:\n\n${mensajeError}`);
+
+      throw new Error(mensajeError);
     } finally {
       setCargandoVacantes(false);
     }
   }
 
   useEffect(() => {
-    cargarCoincidencias();
+    cargarCoincidencias().catch(() => {});
   }, []);
+
+  const vacantesRecomendadas = resultados.filter(
+    (resultado) => resultado.cumpleRequisitos
+  );
 
   return (
     <main>
@@ -130,70 +186,79 @@ export default function CandidatoPage() {
       <section>
         <h2>Vacantes recomendadas</h2>
 
-        {cargandoVacantes && <p>Cargando vacantes...</p>}
+        {cargandoVacantes && <p>Calculando coincidencias...</p>}
 
-        {!cargandoVacantes && resultados.length === 0 && (
-          <p>No hay vacantes disponibles.</p>
+        {!cargandoVacantes && vacantesRecomendadas.length === 0 && (
+          <p>No hay vacantes que cumplan todos los requisitos.</p>
         )}
 
         {!cargandoVacantes &&
-          resultados.map((resultado) => (
-            <article key={resultado.vacanteId}>
-              <h3>{resultado.titulo}</h3>
+          vacantesRecomendadas.map((resultado) => {
+            return (
+              <article key={resultado.vacanteId}>
+                <h3>{resultado.titulo}</h3>
 
-              <p>
-                <strong>Empresa:</strong> {resultado.empresa}
-              </p>
-
-              {resultado.ubicacion && (
                 <p>
-                  <strong>Ubicación:</strong> {resultado.ubicacion}
+                  <strong>Empresa:</strong> {resultado.empresa}
                 </p>
-              )}
 
-              <p>{resultado.descripcion}</p>
-
-              <h4>{resultado.porcentaje}% de coincidencia</h4>
-
-              <p>
-                Requisitos obligatorios:{" "}
-                {resultado.obligatoriosCumplidos}/
-                {resultado.obligatoriosTotales}
-              </p>
-
-              <p>
-                Requisitos deseables:{" "}
-                {resultado.deseablesCumplidos}/
-                {resultado.deseablesTotales}
-              </p>
-
-              <div>
-                <h4>Contacto</h4>
-
-                {resultado.correoContacto && (
-                  <p>Correo: {resultado.correoContacto}</p>
-                )}
-
-                {resultado.telefonoContacto && (
-                  <p>Teléfono: {resultado.telefonoContacto}</p>
-                )}
-
-                {resultado.enlacePostulacion && (
+                {resultado.ubicacion && (
                   <p>
-                    <a
-                      href={resultado.enlacePostulacion}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Postularme
-                    </a>
+                    <strong>Ubicación:</strong> {resultado.ubicacion}
                   </p>
                 )}
-              </div>
-            </article>
-          ))}
+
+                <p>{resultado.descripcion}</p>
+
+                <h4>{resultado.porcentaje}% de coincidencia</h4>
+
+                <section>
+                  <h4>Comparación de requisitos</h4>
+
+                  <p>
+                    <strong>Must-Have:</strong>{" "}
+                    {resultado.obligatoriosCumplidos}/
+                    {resultado.obligatoriosTotales}
+                  </p>
+
+                  <p>✓ Cumple todos los requisitos obligatorios</p>
+
+                  <p>
+                    <strong>Nice-to-Have:</strong>{" "}
+                    {resultado.deseablesCumplidos}/
+                    {resultado.deseablesTotales}
+                  </p>
+
+                  <p>✓ Cumple al menos un requisito deseable</p>
+                </section>
+
+                <div>
+                  <h4>Contacto</h4>
+
+                  {resultado.correoContacto && (
+                    <p>Correo: {resultado.correoContacto}</p>
+                  )}
+
+                  {resultado.telefonoContacto && (
+                    <p>Teléfono: {resultado.telefonoContacto}</p>
+                  )}
+
+                  {resultado.enlacePostulacion && (
+                    <p>
+                      <a
+                        href={resultado.enlacePostulacion}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Postularme
+                      </a>
+                    </p>
+                  )}
+                </div>
+              </article>
+            );
+          })}
       </section>
     </main>
   );
 }
-
