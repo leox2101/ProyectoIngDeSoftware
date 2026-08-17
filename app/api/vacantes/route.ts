@@ -1,7 +1,7 @@
-
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../lib/prisma";
 import { verificarSesion } from "../../lib/auth";
+import { extraerRequisitos } from "../../lib/extractorRequisitos";
 
 export async function POST(request: NextRequest) {
   try {
@@ -63,6 +63,58 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const requisitosManuales = [
+      ...(Array.isArray(requisitosObligatorios)
+        ? requisitosObligatorios
+            .filter(
+              (nombre: unknown): nombre is string =>
+                typeof nombre === "string" && nombre.trim().length > 0
+            )
+            .map((nombre: string) => ({
+              nombre: nombre.trim(),
+              tipo: "OBLIGATORIO" as const,
+            }))
+        : []),
+      ...(Array.isArray(requisitosDeseables)
+        ? requisitosDeseables
+            .filter(
+              (nombre: unknown): nombre is string =>
+                typeof nombre === "string" && nombre.trim().length > 0
+            )
+            .map((nombre: string) => ({
+              nombre: nombre.trim(),
+              tipo: "DESEABLE" as const,
+            }))
+        : []),
+    ];
+
+    const requisitosExtraidos = extraerRequisitos(
+  `${titulo}. ${descripcion}`
+);
+
+console.log("REQUISITOS EXTRAIDOS:", requisitosExtraidos);
+    const requisitosFinales = new Map<
+      string,
+      {
+        nombre: string;
+        tipo: "OBLIGATORIO" | "DESEABLE";
+      }
+    >();
+
+    for (const requisito of requisitosExtraidos) {
+      requisitosFinales.set(
+        requisito.nombre.toLowerCase(),
+        requisito
+      );
+    }
+
+    for (const requisito of requisitosManuales) {
+      requisitosFinales.set(
+        requisito.nombre.toLowerCase(),
+        requisito
+      );
+    }
+
     const vacante = await prisma.vacante.create({
       data: {
         empresaId: empresa.id,
@@ -73,30 +125,7 @@ export async function POST(request: NextRequest) {
         telefonoContacto: telefonoContacto || null,
         enlacePostulacion: enlacePostulacion || null,
         requisitos: {
-          create: [
-            ...(Array.isArray(requisitosObligatorios)
-              ? requisitosObligatorios
-                  .filter(
-                    (nombre: unknown): nombre is string =>
-                      typeof nombre === "string" && nombre.trim().length > 0
-                  )
-                  .map((nombre: string) => ({
-                    nombre: nombre.trim(),
-                    tipo: "OBLIGATORIO" as const,
-                  }))
-              : []),
-            ...(Array.isArray(requisitosDeseables)
-              ? requisitosDeseables
-                  .filter(
-                    (nombre: unknown): nombre is string =>
-                      typeof nombre === "string" && nombre.trim().length > 0
-                  )
-                  .map((nombre: string) => ({
-                    nombre: nombre.trim(),
-                    tipo: "DESEABLE" as const,
-                  }))
-              : []),
-          ],
+          create: Array.from(requisitosFinales.values()),
         },
       },
       include: {
@@ -108,6 +137,7 @@ export async function POST(request: NextRequest) {
       {
         mensaje: "Vacante creada correctamente",
         vacante,
+        requisitosExtraidos,
       },
       { status: 201 }
     );
@@ -120,4 +150,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
