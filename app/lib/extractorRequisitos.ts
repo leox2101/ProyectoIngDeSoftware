@@ -46,7 +46,8 @@ function normalizarTexto(texto: string) {
   return texto
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
 }
 
 function contieneAlgunaPalabra(texto: string, palabras: string[]) {
@@ -66,46 +67,41 @@ export function extraerRequisitos(descripcion: string) {
   >();
 
   const textoNormalizado = normalizarTexto(descripcion);
-
-  const habilidadesOrdenadas = [...HABILIDADES_CONOCIDAS].sort(
-    (a, b) => b.length - a.length
-  );
-
-  for (const habilidad of habilidadesOrdenadas) {
-    const habilidadNormalizada = normalizarTexto(habilidad);
-
-    const regex = new RegExp(
-      `(?<![a-z0-9+#])${escaparRegex(habilidadNormalizada)}(?![a-z0-9+#])`,
-      "gi"
-    );
-
-    const coincidencia = regex.exec(textoNormalizado);
-
-    if (!coincidencia) {
+const oraciones = textoNormalizado.split(/(?<=[!?;])\s+|(?<=\.)\s+(?!js\b)/);
+  for (const oracion of oraciones) {
+    if (!oracion.trim()) {
       continue;
     }
 
-    const posicion = coincidencia.index;
+    const habilidadesEncontradas = [...HABILIDADES_CONOCIDAS]
+      .sort((a, b) => b.length - a.length)
+      .filter((habilidad) => {
+        const habilidadNormalizada = normalizarTexto(habilidad);
 
-    const inicio = Math.max(0, posicion - 60);
-    const fin = Math.min(
-      textoNormalizado.length,
-      posicion + habilidadNormalizada.length + 60
-    );
+        const regex = new RegExp(
+          `(?<![a-z0-9+#])${escaparRegex(
+            habilidadNormalizada
+          )}(?![a-z0-9+#])`
+        );
 
-    const contexto = textoNormalizado.substring(inicio, fin);
+        return regex.test(oracion);
+      });
 
-    let tipo: "OBLIGATORIO" | "DESEABLE" = "OBLIGATORIO";
+    for (const habilidad of habilidadesEncontradas) {
+      const habilidadNormalizada = normalizarTexto(habilidad);
 
-    if (contieneAlgunaPalabra(contexto, PALABRAS_DESEABLES)) {
-      tipo = "DESEABLE";
+      let tipo: "OBLIGATORIO" | "DESEABLE" = "OBLIGATORIO";
+
+      if (contieneAlgunaPalabra(oracion, PALABRAS_DESEABLES)) {
+        tipo = "DESEABLE";
+      } else if (
+        contieneAlgunaPalabra(oracion, PALABRAS_OBLIGATORIAS)
+      ) {
+        tipo = "OBLIGATORIO";
+      }
+
+      requisitos.set(habilidadNormalizada, tipo);
     }
-
-    if (contieneAlgunaPalabra(contexto, PALABRAS_OBLIGATORIAS)) {
-      tipo = "OBLIGATORIO";
-    }
-
-    requisitos.set(habilidadNormalizada, tipo);
   }
 
   return Array.from(requisitos.entries()).map(
