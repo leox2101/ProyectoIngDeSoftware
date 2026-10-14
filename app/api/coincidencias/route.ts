@@ -161,6 +161,14 @@ export async function GET(request: NextRequest) {
         obligatoriosTotales: obligatorios.length,
         deseablesCumplidos,
         deseablesTotales: deseables.length,
+        // Detalle por requisito para que el front muestre cuáles cumple y cuáles faltan.
+        requisitos: vacante.requisitos.map((requisito) => ({
+          nombre: requisito.nombre,
+          tipo: requisito.tipo,
+          cumplido: habilidadesCandidato.includes(
+            normalizarTexto(requisito.nombre)
+          ),
+        })),
       });
     }
 
