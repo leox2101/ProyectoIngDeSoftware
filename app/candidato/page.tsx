@@ -437,6 +437,7 @@ function ListaRequisitos({
 function TarjetaVacante({ resultado }: { resultado: ResultadoCoincidencia }) {
   const obligatorios = resultado.requisitos?.filter((r) => r.tipo === "OBLIGATORIO");
   const deseables = resultado.requisitos?.filter((r) => r.tipo === "DESEABLE");
+  const [abierta, setAbierta] = useState(false);
 
   return (
     <article className="hoja vacante">
@@ -470,7 +471,12 @@ function TarjetaVacante({ resultado }: { resultado: ResultadoCoincidencia }) {
         </div>
       </div>
 
-      <p>{resultado.descripcion}</p>
+      <p
+        id={`descripcion-${resultado.vacanteId}`}
+        className={abierta ? undefined : "recortado"}
+      >
+        {resultado.descripcion}
+      </p>
 
       <div className="pila-s">
         <ListaRequisitos
@@ -487,21 +493,51 @@ function TarjetaVacante({ resultado }: { resultado: ResultadoCoincidencia }) {
         />
       </div>
 
-      {(resultado.correoContacto || resultado.telefonoContacto || resultado.enlacePostulacion) && (
-        <div className="contacto">
+      {abierta && (
+        <dl id={`detalle-${resultado.vacanteId}`} className="detalle">
+          <div>
+            <dt>Empresa</dt>
+            <dd>{resultado.empresa}</dd>
+          </div>
+          <div>
+            <dt>Ubicación</dt>
+            <dd>{resultado.ubicacion || "No especificada"}</dd>
+          </div>
           {resultado.correoContacto && (
-            <a href={`mailto:${resultado.correoContacto}`}>{resultado.correoContacto}</a>
+            <div>
+              <dt>Correo</dt>
+              <dd>
+                <a href={`mailto:${resultado.correoContacto}`}>{resultado.correoContacto}</a>
+              </dd>
+            </div>
           )}
           {resultado.telefonoContacto && (
-            <a href={`tel:${resultado.telefonoContacto}`}>{resultado.telefonoContacto}</a>
+            <div>
+              <dt>Teléfono</dt>
+              <dd>
+                <a href={`tel:${resultado.telefonoContacto}`}>{resultado.telefonoContacto}</a>
+              </dd>
+            </div>
           )}
-          {resultado.enlacePostulacion && (
-            <a href={resultado.enlacePostulacion} target="_blank" rel="noopener noreferrer">
-              Postularme
-            </a>
-          )}
-        </div>
+        </dl>
       )}
+
+      <div className="contacto">
+        <button
+          type="button"
+          className="boton-texto"
+          aria-expanded={abierta}
+          aria-controls={`detalle-${resultado.vacanteId} descripcion-${resultado.vacanteId}`}
+          onClick={() => setAbierta(!abierta)}
+        >
+          {abierta ? "Ocultar detalle" : "Ver detalle y contacto"}
+        </button>
+        {resultado.enlacePostulacion && (
+          <a href={resultado.enlacePostulacion} target="_blank" rel="noopener noreferrer">
+            Postularme
+          </a>
+        )}
+      </div>
     </article>
   );
 }
