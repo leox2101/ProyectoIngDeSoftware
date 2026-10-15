@@ -44,9 +44,17 @@ type ExperienciaExtraida = {
 export function extraerHabilidades(texto: string): string[] {
   const textoNormalizado = texto.toLowerCase();
 
-  return habilidadesConocidas.filter((habilidad) =>
-    textoNormalizado.includes(habilidad.toLowerCase())
-  );
+  // Se busca la habilidad como palabra completa: así "Java" no se detecta
+  // dentro de "JavaScript" ni "SQL" dentro de "PostgreSQL".
+  return habilidadesConocidas.filter((habilidad) => {
+    const escapada = habilidad
+      .toLowerCase()
+      .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    return new RegExp(`(?<![a-z0-9+#])${escapada}(?![a-z0-9+#])`).test(
+      textoNormalizado
+    );
+  });
 }
 
 export function extraerEducacion(texto: string): EducacionExtraida[] {
