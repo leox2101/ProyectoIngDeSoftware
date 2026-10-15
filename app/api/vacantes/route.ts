@@ -3,6 +3,74 @@ import { prisma } from "../../lib/prisma";
 import { verificarSesion } from "../../lib/auth";
 import { extraerRequisitos } from "../../lib/extractorRequisitos";
 
+// Lista las vacantes publicadas por la empresa de la sesión.
+export async function GET(request: NextRequest) {
+  try {
+    const token = request.cookies.get("sesion")?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { error: "No estás autenticado" },
+        { status: 401 }
+      );
+    }
+
+    const sesion = await verificarSesion(token);
+
+    if (!sesion || sesion.rol !== "EMPRESA") {
+      return NextResponse.json(
+        { error: "No tienes permiso para consultar vacantes" },
+        { status: 403 }
+      );
+    }
+
+    const empresa = await prisma.empresa.findUnique({
+      where: {
+        usuarioId: sesion.usuarioId,
+      },
+    });
+
+    if (!empresa) {
+      return NextResponse.json(
+        { error: "No se encontró la empresa asociada al usuario" },
+        { status: 404 }
+      );
+    }
+
+    const vacantes = await prisma.vacante.findMany({
+      where: {
+        empresaId: empresa.id,
+      },
+      include: {
+        requisitos: true,
+        coincidencias: {
+          select: { porcentaje: true },
+        },
+      },
+      orderBy: {
+        fechaCreacion: "desc",
+      },
+    });
+
+    return NextResponse.json({
+      vacantes: vacantes.map(({ coincidencias, ...vacante }) => ({
+        ...vacante,
+        candidatosEvaluados: coincidencias.length,
+        candidatosSobre60: coincidencias.filter(
+          (coincidencia) => coincidencia.porcentaje >= 60
+        ).length,
+      })),
+    });
+  } catch (error) {
+    console.error("Error al listar vacantes:", error);
+
+    return NextResponse.json(
+      { error: "Error interno del servidor" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const token = request.cookies.get("sesion")?.value;
