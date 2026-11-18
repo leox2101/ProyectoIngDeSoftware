@@ -1,0 +1,23 @@
+PASOS PARA SUBIR LA RAMA (desde github.com)
+
+1. Abre https://github.com/leox2101/ProyectoIngDeSoftware
+2. Selector de rama (dice "main") -> escribe: sebas-panel-vacantes -> "Create branch: sebas-panel-vacantes from main"
+3. Con esa rama seleccionada y en la RAIZ del repo: Add file -> Upload files
+4. Arrastra SOLO la carpeta "app" de este paquete (no PASOS.txt ni descripcion-PR.md)
+5. Revisa que todos los archivos empiecen por app/...  (7 archivos)
+6. Mensaje del commit:
+   feat: panel de administracion de vacantes, DELETE de vacantes y paleta Magneto
+7. Marca "Commit directly to the sebas-panel-vacantes branch" -> Commit changes
+8. Pulsa "Compare & pull request" (base: main  <-  compare: sebas-panel-vacantes)
+9. Titulo:  Panel de administración de vacantes y paleta institucional de Magneto
+   Descripcion: pega el contenido de descripcion-PR.md (sin la primera linea ##)
+10. Create pull request
+
+Archivos que se suben:
+  app/api/vacantes/[id]/route.ts      (reemplaza)  DELETE de vacantes
+  app/empresa/vacantes/page.tsx       (NUEVO)      panel de administracion
+  app/empresa/page.tsx                (reemplaza)  accesos al panel
+  app/components/BarraSuperior.tsx    (reemplaza)  enlace "Mis vacantes"
+  app/globals.css                     (reemplaza)  estilos + paleta Magneto
+  app/page.tsx                        (reemplaza)  color de portada
+  app/candidato/page.tsx              (reemplaza)  color del panel candidato
