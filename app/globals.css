@@ -5,27 +5,39 @@
   Idea central: lo que el sistema identifica (habilidades del CV y requisitos
   de una vacante) se muestra "subrayado con resaltador", como haría una persona
   revisando una hoja de vida en papel.
-  - Amarillo: requisito obligatorio (must-have)
+  - Lavanda: requisito obligatorio (must-have)
   - Menta: requisito deseable (nice-to-have) / habilidad detectada
   - Contorno rojo punteado: requisito que el candidato no cumple
+
+  Paleta institucional de Magneto:
+  - Morado institucional: color protagonista (marca, botones principales, enlaces)
+  - Azul profundo / azul brillante: títulos, foco e información
+  - Verde esmeralda / menta: acento y botones de llamado a la acción (CTA)
+  - Blanco y gris oscuro: base neutra y tipografía
 */
 
 :root {
-  --papel: #eef1f4;
+  --papel: #f6f4fb;
   --superficie: #ffffff;
-  --superficie-2: #f6f8fa;
-  --tinta: #1b2a41;
-  --tinta-suave: #55627a;
-  --linea: #d3d9e2;
-  --marca: #2347c5;
-  --marca-hover: #1a37a0;
+  --superficie-2: #f8f6fd;
+  --tinta: #24232d;
+  --tinta-suave: #5c5a6e;
+  --linea: #e0dbec;
+  --titulos: #1a2366;
+  --marca: #6a2bd4;
+  --marca-hover: #5320ad;
   --sobre-marca: #ffffff;
-  --resaltador-obl: #f5e663;
-  --resaltador-des: #a8e6cf;
-  --tinta-resaltada: #1b2a41;
-  --faltante: #b3261e;
-  --exito: #1f7a4d;
-  --foco: #2347c5;
+  --azul: #1a2366;
+  --azul-brillante: #2f6fed;
+  --acento: #047857;
+  --acento-hover: #065f46;
+  --sobre-acento: #ffffff;
+  --resaltador-obl: #e2d4fb;
+  --resaltador-des: #b4f0d9;
+  --tinta-resaltada: #24232d;
+  --faltante: #c0262d;
+  --exito: #047857;
+  --foco: #2f6fed;
 
   --fuente-titulo: "Bricolage Grotesque Variable", "Bricolage Grotesque",
     system-ui, sans-serif;
@@ -37,38 +49,50 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --papel: #141b26;
-    --superficie: #1c2533;
-    --superficie-2: #222c3c;
-    --tinta: #e7ecf3;
-    --tinta-suave: #9aa6b8;
-    --linea: #2c3748;
-    --marca: #7e9bff;
-    --marca-hover: #a3b7ff;
-    --sobre-marca: #0f1623;
-    --resaltador-obl: #e8d84f;
-    --resaltador-des: #8fd6bb;
+    --papel: #14121c;
+    --superficie: #1d1a29;
+    --superficie-2: #252134;
+    --tinta: #ece9f5;
+    --tinta-suave: #a7a2bd;
+    --linea: #342f47;
+    --titulos: #c9d4ff;
+    --marca: #b48cff;
+    --marca-hover: #cbadff;
+    --sobre-marca: #160b2e;
+    --azul: #8fa7ff;
+    --azul-brillante: #7aa5ff;
+    --acento: #34d399;
+    --acento-hover: #6ee7b7;
+    --sobre-acento: #052e22;
+    --resaltador-obl: #c7b0f5;
+    --resaltador-des: #86dfbd;
     --faltante: #ff8a80;
-    --exito: #6fd3a0;
-    --foco: #a3b7ff;
+    --exito: #4ade9f;
+    --foco: #7aa5ff;
   }
 }
 
 :root[data-theme="dark"] {
-  --papel: #141b26;
-  --superficie: #1c2533;
-  --superficie-2: #222c3c;
-  --tinta: #e7ecf3;
-  --tinta-suave: #9aa6b8;
-  --linea: #2c3748;
-  --marca: #7e9bff;
-  --marca-hover: #a3b7ff;
-  --sobre-marca: #0f1623;
-  --resaltador-obl: #e8d84f;
-  --resaltador-des: #8fd6bb;
+  --papel: #14121c;
+  --superficie: #1d1a29;
+  --superficie-2: #252134;
+  --tinta: #ece9f5;
+  --tinta-suave: #a7a2bd;
+  --linea: #342f47;
+  --titulos: #c9d4ff;
+  --marca: #b48cff;
+  --marca-hover: #cbadff;
+  --sobre-marca: #160b2e;
+  --azul: #8fa7ff;
+  --azul-brillante: #7aa5ff;
+  --acento: #34d399;
+  --acento-hover: #6ee7b7;
+  --sobre-acento: #052e22;
+  --resaltador-obl: #c7b0f5;
+  --resaltador-des: #86dfbd;
   --faltante: #ff8a80;
-  --exito: #6fd3a0;
-  --foco: #a3b7ff;
+  --exito: #4ade9f;
+  --foco: #7aa5ff;
 }
 
 @theme inline {
@@ -95,6 +119,7 @@ h2,
 h3,
 h4 {
   font-family: var(--fuente-titulo);
+  color: var(--titulos);
   line-height: 1.15;
   margin: 0;
   letter-spacing: -0.01em;
@@ -148,6 +173,7 @@ a {
 .barra {
   border-bottom: 1px solid var(--linea);
   background: var(--superficie);
+  box-shadow: inset 0 4px 0 0 var(--marca);
 }
 
 .barra-interior {
@@ -173,7 +199,7 @@ a {
   width: 26px;
   height: 14px;
   border-radius: 3px 8px 3px 8px;
-  background: var(--resaltador-obl);
+  background: linear-gradient(90deg, var(--marca), var(--azul-brillante) 60%, var(--acento));
   transform: skewX(-12deg);
 }
 
@@ -229,6 +255,15 @@ a {
   cursor: progress;
 }
 
+.boton.boton-acento {
+  background: var(--acento);
+  color: var(--sobre-acento);
+}
+
+.boton.boton-acento:hover {
+  background: var(--acento-hover);
+}
+
 .boton.boton-secundario {
   background: transparent;
   color: var(--tinta);
@@ -270,6 +305,7 @@ input[type="email"],
 input[type="password"],
 input[type="tel"],
 input[type="url"],
+input[type="search"],
 textarea,
 select {
   font: inherit;
@@ -887,4 +923,179 @@ label.boton:has(input:focus-visible) {
 .contacto .boton-texto {
   padding: 0;
   font-size: inherit;
+}
+
+/* ---------- Administración de vacantes (empresa) ---------- */
+
+.boton.boton-peligro {
+  background: transparent;
+  color: var(--faltante);
+  border-color: currentColor;
+}
+
+.boton.boton-peligro:hover {
+  background: var(--faltante);
+  color: var(--superficie);
+}
+
+.boton.boton-peligro:hover:disabled {
+  background: transparent;
+  color: var(--faltante);
+}
+
+.resumen-vacantes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 820px) {
+  .resumen-vacantes {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.tarjeta-resumen {
+  display: grid;
+  gap: 2px;
+  padding: 16px 18px;
+  background: var(--superficie);
+  border: 1px solid var(--linea);
+  border-top: 4px solid var(--marca);
+  border-radius: var(--radio-m);
+}
+
+.tarjeta-resumen.tarjeta-ok {
+  border-top-color: var(--exito);
+}
+
+.tarjeta-resumen.tarjeta-pausa {
+  border-top-color: var(--tinta-suave);
+}
+
+.tarjeta-resumen.tarjeta-info {
+  border-top-color: var(--foco);
+}
+
+.tarjeta-cifra {
+  font-family: var(--fuente-titulo);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.barra-filtros {
+  align-items: flex-end;
+}
+
+.fila-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.campo-busqueda {
+  min-width: 240px;
+}
+
+.bloque {
+  display: block;
+}
+
+.tabla-contenedor {
+  overflow-x: auto;
+}
+
+.tabla-vacantes {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.tabla-vacantes th {
+  text-align: left;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tinta-suave);
+  padding: 10px 12px;
+  border-bottom: 2px solid var(--linea);
+  white-space: nowrap;
+}
+
+.tabla-vacantes td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--linea);
+  vertical-align: middle;
+}
+
+.tabla-vacantes tbody tr:hover {
+  background: var(--superficie-2);
+}
+
+.tabla-vacantes .acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* En pantallas pequeñas cada fila se muestra como una tarjeta */
+@media (max-width: 760px) {
+  .tabla-vacantes thead {
+    display: none;
+  }
+
+  .tabla-vacantes tr {
+    display: grid;
+    gap: 6px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--linea);
+  }
+
+  .tabla-vacantes td {
+    padding: 0;
+    border: none;
+  }
+
+  .tabla-vacantes td[data-etiqueta]::before {
+    content: attr(data-etiqueta) ": ";
+    font-weight: 600;
+    color: var(--tinta-suave);
+  }
+
+  .tabla-vacantes td:first-child::before {
+    content: none;
+  }
+
+  .tabla-vacantes .acciones {
+    justify-content: flex-start;
+    padding-top: 6px;
+  }
+}
+
+.fondo-dialogo {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgb(15 10 30 / 0.55);
+}
+
+.dialogo {
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.25);
+}
+
+.fila-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
 }

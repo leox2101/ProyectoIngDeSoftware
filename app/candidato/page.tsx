@@ -1069,7 +1069,7 @@ function TarjetaVacante({ resultado }: { resultado: ResultadoCoincidencia }) {
 
           type="button"
 
-          className="boton"
+          className="boton boton-acento"
 
           onClick={postularme}
 
