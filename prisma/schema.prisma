@@ -17,6 +17,12 @@ enum TipoRequisito {
   DESEABLE
 }
 
+enum EstadoPostulacion {
+  PENDIENTE
+  ENVIADA
+  ERROR
+}
+
 model Usuario {
   id             Int       @id @default(autoincrement())
   correo         String    @unique
@@ -39,6 +45,7 @@ model Candidato {
   experiencias    Experiencia[]
   educacion       Educacion[]
   coincidencias   Coincidencia[]
+  postulaciones   Postulacion[]
   fechaCreacion   DateTime            @default(now())
   fechaActualizacion DateTime         @updatedAt
 }
@@ -106,6 +113,7 @@ model Vacante {
   enlacePostulacion  String?
   requisitos         Requisito[]
   coincidencias      Coincidencia[]
+  postulaciones      Postulacion[]
   activa             Boolean       @default(true)
   fechaCreacion      DateTime      @default(now())
   fechaActualizacion DateTime      @updatedAt
@@ -130,4 +138,27 @@ model Coincidencia {
   fechaCreacion   DateTime   @default(now())
 
   @@unique([candidatoId, vacanteId])
+}
+
+model Postulacion {
+  id                  Int               @id @default(autoincrement())
+  candidatoId         Int
+  vacanteId           Int
+  candidato           Candidato         @relation(fields: [candidatoId], references: [id], onDelete: Cascade)
+  vacante             Vacante           @relation(fields: [vacanteId], references: [id], onDelete: Cascade)
+  estado              EstadoPostulacion @default(PENDIENTE)
+  correoDestino       String
+  correoRespuesta     String
+  asunto              String
+  contenidoCorreo     String            @db.Text
+  porcentaje          Float
+  resendEmailId       String?
+  ultimoError         String?           @db.Text
+  intentos            Int               @default(1)
+  fechaCreacion       DateTime          @default(now())
+  fechaActualizacion  DateTime          @updatedAt
+
+  @@unique([candidatoId, vacanteId])
+  @@index([vacanteId, estado])
+  @@index([candidatoId, fechaCreacion])
 }

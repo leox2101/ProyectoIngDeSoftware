@@ -19,6 +19,7 @@ export type RequisitoEvaluado = {
 
 export type ResultadoCoincidencia = {
   vacanteId: number;
+  estadoPostulacion: "PENDIENTE" | "ENVIADA" | "ERROR" | null;
   titulo: string;
   descripcion: string;
   ubicacion: string | null;

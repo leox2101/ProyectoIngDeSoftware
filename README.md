@@ -19,10 +19,14 @@ Requisitos: Node.js 20 o superior y una base de datos PostgreSQL.
    ```env
    DATABASE_URL="postgresql://USUARIO:CONTRASEÑA@localhost:5432/portal_empleo"
    SESSION_SECRET="una-cadena-larga-y-aleatoria"
+   RESEND_API_KEY="re_tu_clave_de_resend"
+   RESEND_FROM_EMAIL="Portal de Empleo <correo@tu-dominio-verificado.com>"
    ```
 
    - `DATABASE_URL`: conexión a PostgreSQL.
    - `SESSION_SECRET`: clave con la que se firman los JWT de sesión. La aplicación no arranca sin ella.
+   - `RESEND_API_KEY`: clave privada de API de Resend para enviar correos desde el servidor.
+   - `RESEND_FROM_EMAIL`: remitente autorizado en Resend. En producción debe pertenecer a un dominio verificado.
 
 3. Aplica las migraciones y genera el cliente de Prisma:
 
@@ -81,9 +85,32 @@ prisma/                 Esquema y migraciones
 | GET | `/api/vacantes` | EMPRESA | Lista las vacantes de la empresa |
 | POST | `/api/vacantes` | EMPRESA | Publica una vacante y extrae sus requisitos |
 | PATCH | `/api/vacantes/[id]` | EMPRESA | Activa o pausa una vacante propia |
+| POST | `/api/vacantes/[id]/postular` | CANDIDATO | Envía por correo la postulación con habilidades y porcentaje de compatibilidad, sin crear registros en la base de datos |
 
 ## Reglas de coincidencia
 
 - Porcentaje = 60 % × (obligatorios cumplidos / total obligatorios) + 40 % × (deseables cumplidos / total deseables). Si una vacante no tiene requisitos de un tipo, esa parte cuenta como 100 %.
 - Un candidato **cumple** la vacante si tiene todos los obligatorios y al menos un deseable.
 - Las habilidades se comparan sin distinguir mayúsculas ni tildes y como palabra completa (por ejemplo, "Java" no coincide con "JavaScript").
+
+## Envío de postulaciones por correo
+
+El botón **Postularme** envía un correo al contacto de la vacante (o al correo de la cuenta de la empresa si no se indicó uno). El mensaje incluye el nombre y correo del candidato, sus habilidades identificadas y el porcentaje de compatibilidad calculado con los requisitos de la vacante. No se guarda una postulación en la base de datos.
+
+Para habilitarlo, crea una cuenta en [Resend](https://resend.com), genera una API Key y configura `RESEND_API_KEY` y `RESEND_FROM_EMAIL` en el archivo `.env`. El remitente debe estar autorizado por Resend; para enviar a destinatarios externos en producción, verifica un dominio. No compartas ni subas la API Key al repositorio.
+
+
+## Postulaciones por correo
+
+Las postulaciones se registran en la tabla `Postulacion`, con una restricción única por candidato y vacante. El registro conserva el destinatario, los datos del correo y el porcentaje calculado al momento de postularse. Los estados son `PENDIENTE`, `ENVIADA` y `ERROR`.
+
+El endpoint bloquea postulaciones ya enviadas o en proceso. Si un envío falla, permite reintentarlo usando el mismo contenido guardado y la misma clave de idempotencia de Resend (`postulacion-<id>`), para evitar correos repetidos cuando el proveedor ya aceptó la solicitud pero se perdió la respuesta.
+
+Para aplicar la nueva estructura en una base existente, ejecutar:
+
+```bash
+npx prisma migrate deploy
+npx prisma generate
+```
+
+El destinatario se toma de `Vacante.correoContacto`; si está vacío, se usa el correo de la cuenta de la empresa. Resend exige un dominio remitente verificado para enviar a destinatarios arbitrarios.

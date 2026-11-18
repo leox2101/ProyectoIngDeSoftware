@@ -36,6 +36,9 @@ export async function GET(request: NextRequest) {
       },
       include: {
         habilidades: true,
+        postulaciones: {
+          select: { vacanteId: true, estado: true },
+        },
       },
     });
 
@@ -146,6 +149,8 @@ export async function GET(request: NextRequest) {
 
       resultados.push({
         vacanteId: vacante.id,
+        estadoPostulacion:
+          candidato.postulaciones.find((p) => p.vacanteId === vacante.id)?.estado ?? null,
         titulo: vacante.titulo,
         descripcion: vacante.descripcion,
         ubicacion: vacante.ubicacion,
