@@ -191,7 +191,7 @@ export default function Home() {
             <Aviso tipo="error">{error}</Aviso>
           )}
 
-          <button type="submit" className="boton" disabled={cargando}>
+          <button type="submit" className="boton boton-acento" disabled={cargando}>
             {cargando ? "Creando cuenta…" : "Crear cuenta"}
           </button>
         </form>

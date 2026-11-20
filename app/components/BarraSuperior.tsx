@@ -63,6 +63,11 @@ export default function BarraSuperior() {
               <Link href={panel} className="boton-texto barra-mi-panel">
                 Mi panel
               </Link>
+              {usuario.rol === "EMPRESA" && (
+                <Link href="/empresa/vacantes" className="boton-texto barra-mi-panel">
+                  Mis vacantes
+                </Link>
+              )}
               <button
                 type="button"
                 className="boton boton-secundario"
@@ -78,7 +83,7 @@ export default function BarraSuperior() {
               <Link href="/login" className="boton-texto">
                 Iniciar sesión
               </Link>
-              <Link href="/#registro" className="boton">
+              <Link href="/#registro" className="boton boton-acento">
                 Crear cuenta
               </Link>
             </>

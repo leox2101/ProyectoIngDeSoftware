@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Aviso from "../components/Aviso";
 import TextoResaltado from "../components/TextoResaltado";
@@ -179,7 +180,12 @@ export default function EmpresaPage() {
   return (
     <>
       <div className="encabezado-pagina">
-        <h1>Publica una vacante</h1>
+        <div className="fila-entre">
+          <h1>Publica una vacante</h1>
+          <Link href="/empresa/vacantes" className="boton boton-secundario">
+            Administrar vacantes
+          </Link>
+        </div>
         <p className="texto-suave">
           Describe el cargo con tus palabras. El portal subraya las tecnologías
           que reconoce: si la frase dice «deseable», «se valorará» o «plus»,
@@ -292,7 +298,7 @@ export default function EmpresaPage() {
 
           {aviso && <Aviso tipo={aviso.tipo}>{aviso.texto}</Aviso>}
 
-          <button type="submit" className="boton" disabled={publicando}>
+          <button type="submit" className="boton boton-acento" disabled={publicando}>
             {publicando ? "Publicando…" : "Publicar vacante"}
           </button>
         </form>
@@ -353,7 +359,10 @@ export default function EmpresaPage() {
               <h2 id="titulo-mis-vacantes">Tus vacantes</h2>
               {vacantes.length > 0 && (
                 <span className="texto-suave pequeno">
-                  {activas} activas de {vacantes.length}
+                  {activas} activas de {vacantes.length} ·{" "}
+                  <Link href="/empresa/vacantes" className="boton-texto">
+                    Ver todas
+                  </Link>
                 </span>
               )}
             </div>

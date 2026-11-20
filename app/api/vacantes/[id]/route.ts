@@ -80,3 +80,72 @@ export async function PATCH(
     );
   }
 }
+
+// Elimina una vacante. Solo la empresa dueña puede hacerlo.
+// Sus requisitos, coincidencias y postulaciones se borran en cascada.
+export async function DELETE(
+  request: NextRequest,
+  ctx: RouteContext<"/api/vacantes/[id]">
+) {
+  try {
+    const token = request.cookies.get("sesion")?.value;
+
+    if (!token) {
+      return NextResponse.json(
+        { error: "No estás autenticado" },
+        { status: 401 }
+      );
+    }
+
+    const sesion = await verificarSesion(token);
+
+    if (!sesion || sesion.rol !== "EMPRESA") {
+      return NextResponse.json(
+        { error: "No tienes permiso para eliminar vacantes" },
+        { status: 403 }
+      );
+    }
+
+    const { id } = await ctx.params;
+    const vacanteId = Number(id);
+
+    if (!Number.isInteger(vacanteId)) {
+      return NextResponse.json(
+        { error: "El identificador de la vacante no es válido" },
+        { status: 400 }
+      );
+    }
+
+    const vacante = await prisma.vacante.findFirst({
+      where: {
+        id: vacanteId,
+        empresa: {
+          usuarioId: sesion.usuarioId,
+        },
+      },
+    });
+
+    if (!vacante) {
+      return NextResponse.json(
+        { error: "No se encontró la vacante" },
+        { status: 404 }
+      );
+    }
+
+    await prisma.vacante.delete({
+      where: { id: vacanteId },
+    });
+
+    return NextResponse.json({
+      mensaje: "Vacante eliminada",
+      vacanteId,
+    });
+  } catch (error) {
+    console.error("Error al eliminar vacante:", error);
+
+    return NextResponse.json(
+      { error: "Error interno del servidor" },
+      { status: 500 }
+    );
+  }
+}
